@@ -1,0 +1,24 @@
+.users-sessions-new, .users-new, .users-passwords-new, .users-edit {
+  margin: 0 auto;
+  padding-top: 100px;
+  width: 300px;
+
+  .form {
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 20px;
+  }
+
+  .under-form-link {
+    color: #aaa;
+    display: block;
+    font-size: 14px;
+    margin-top: 10px;
+    text-align: center;
+
+    &:hover {
+      opacity: .8;
+    }
+  }
+}

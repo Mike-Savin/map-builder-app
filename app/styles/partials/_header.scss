@@ -1,0 +1,19 @@
+header {
+  position: fixed;
+  border-right: 1px solid #ccc;
+  background: #fff;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 240px;
+  padding: 20px;
+
+  .logo {
+    font-family: 'Josefin Sans', 'Arial';
+    font-weight: 700;
+    color: #555;
+    padding-top: 10px;
+    font-size: 40px;
+    text-transform: lowercase;
+  }
+}

@@ -1,0 +1,8 @@
+<section class="maps-index">
+  <h4 class="maps-heading">Maps:</h4>
+  <ul class="maps-list">
+    <li class="map" ng-repeat="map in maps">
+      <a ui-sref="mapsShow({id: map.id})">{{map.name}}</a>
+    </li>
+  </ul>
+</section>

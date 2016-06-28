@@ -1,0 +1,121 @@
+/*-------------------------------------------------------------------------------------------*/
+/* 0. RESET */
+/*-------------------------------------------------------------------------------------------*/
+/* http://meyerweb.com/eric/tools/css/reset/ | v1.0 | 20080212 */
+body, html {
+  height: 100%; }
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, font, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td, figure {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  font-size: 100%;
+  vertical-align: baseline;
+  background: transparent; }
+
+body {
+  line-height: 1; }
+
+ol, ul {
+  list-style: none; }
+
+blockquote, q {
+  quotes: none; }
+
+blockquote:before, blockquote:after, q:before, q:after {
+  content: '';
+  content: none; }
+
+:focus {
+  outline: 0; }
+
+/* remember to define focus styles! */
+del {
+  text-decoration: line-through; }
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0; }
+
+/* tables still need 'cellspacing="0"' in the markup */
+sub, sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative; }
+
+sup {
+  top: -0.5em; }
+
+sub {
+  bottom: -0.25em; }
+
+/* */
+body {
+	background-color: #F8F8F8;
+	font-size: 14px;
+	color: #000;
+	font-family: 'Avenir', sans-serif;
+}
+p, li, input, select, button {
+	text-align: left;
+	font-family: 'Avenir', sans-serif;
+	line-height: 1.4em;
+}
+a { text-decoration: none; }
+a:hover { text-decoration: underline; }
+img {
+	border: none;
+	display: block;
+	max-width: 100%;
+	height: auto;
+}
+.col-full {
+	margin: 0 auto;
+	max-width: 1200px;
+	width: 100%;
+	overflow: hidden;
+}
+h1, h2 { line-height: 1em; }
+h1 {
+	font-size: 48px;
+	text-align: center;
+}
+h2 {
+	text-align: center;
+}
+
+div[ui-view] > section {
+	padding-left: 250px;
+}
+
+header {
+	top: 0;
+	bottom: 0;
+	position: fixed;
+	left: 0;
+	width: 250px;
+	background: #369;
+}
+.ng-toast__list {
+	position: absolute;
+	top: 20px;
+	right: 20px;
+}
+
+.ng-toast__list > li {
+	position: relative;
+	width: 300px;
+	border: 1px solid #ccc;
+	padding: 10px;
+	background-color: #eee;
+	color: #000;
+}
