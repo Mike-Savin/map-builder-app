@@ -1,4 +1,4 @@
-var currentUser = function ($injector, localStorageService, requestedState) {
+var currentUser = function ($injector, localStorageService, requestedState, Restangular) {
   var user = {
     get: function () {
       return localStorageService.get('currentUser');
@@ -6,16 +6,17 @@ var currentUser = function ($injector, localStorageService, requestedState) {
     
     set: function (user) {
       localStorageService.set('currentUser', user);
+      Restangular.setDefaultHeaders({'access-token': user.accessToken});
     },
 
     clear: function () {
       localStorageService.remove('currentUser');
+      Restangular.setDefaultHeaders({'access-token': ''});
     },
 
     checkAccess: function (event, toState, toParams, fromState, fromParams) {
       var $state = $injector.get('$rootScope').$state,
         authorized = !!user.get();
-
       if (toState.authState !== undefined && authorized !== toState.authState) {
         event.preventDefault();
         if (toState.authState) {

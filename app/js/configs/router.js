@@ -14,7 +14,7 @@ var router = function ($stateProvider, $urlRouterProvider) {
       authState: false
     })
     .state('users.edit', {
-      url: '/settings',
+      url: '/edit',
       controller: 'UsersEditCtrl',
       templateUrl: 'views/users/edit.html',
       authState: true

@@ -1,13 +1,8 @@
 <section class="maps-show">
-{{map}}
+  <h4 class="maps-heading">{{map.name}}</h4>
 
-  <d3-data src="map.points" data="line" columns="x, y, z"></d3-data>
-  <div d3-chart data="line" margin="{ top: 20, right: 30, bottom: 40, left: 20 }">
-    <d3-axis name="x" label="x" extent="true" orientation="bottom" ticks="5"></d3-axis>
-    <d3-axis name="y" label="y" orientation="left" ticks="5"></d3-axis>
-    <d3-axis name="z" label="z" orientation="right" ticks="5"></d3-axis>
-    <d3-line x="x" y="y" yscale="total"></d3-line>
-    <d3-area x="x" y="y"></d3-area>
-    <d3-bars x="x" y="y"></d3-bars>
-  </div>
+  <button class="btn"
+          ng-click="stop()" ng-show="map.active">Stop robot</button>
+
+  <threejs-scene height="500" width="800" points="points"></threejs-scene>
 </section>

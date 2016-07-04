@@ -1,14 +1,15 @@
 var topNewsApp = angular.module('topNewsApp', [
-    'ngSanitize',
-    'restangular',
-    'ui.router',
-    'LocalStorageModule',
-    'validation',
-    'validation.rule',
-    'ngToast',
-    'ngAnimate',
-    'pascalprecht.translate',
-    'ad3'
+  'LocalStorageModule',
+  'ngAnimate',
+  'ngSanitize',
+  'ngSails',
+  'ngToast',
+  'pascalprecht.translate',
+  'restangular',
+  'threejs',
+  'ui.router',
+  'validation',
+  'validation.rule'
 ]);
 var angularLocalStorage = function(localStorageServiceProvider) {
     localStorageServiceProvider.setPrefix('mapBuilder');
@@ -46,7 +47,7 @@ var router = function ($stateProvider, $urlRouterProvider) {
       authState: false
     })
     .state('users.edit', {
-      url: '/settings',
+      url: '/edit',
       controller: 'UsersEditCtrl',
       templateUrl: 'views/users/edit.html',
       authState: true
@@ -94,6 +95,10 @@ var router = function ($stateProvider, $urlRouterProvider) {
     })
 };
 topNewsApp.config(router);
+var sails = function ($sailsProvider, API) {
+  $sailsProvider.url = API.url;
+};
+topNewsApp.config(sails);
 var restangular = function ($translateProvider) {
   $translateProvider.translations('en', {
     'SERVER': {
@@ -106,7 +111,7 @@ var restangular = function ($translateProvider) {
           'EXISTS': 'Email already exists',
           'INVALID': 'Email is invalid',
           'REQUIRED': 'Email is required',
-          'NOT_FOUND': 'Email not found'
+          'NOT_FOUND': 'Email was not found'
         }
       }
     }
@@ -137,6 +142,13 @@ var policy = function ($rootScope, $state, $stateParams, currentUser) {
   );
 };
 topNewsApp.run(policy);
+var setHeaders = function (currentUser, Restangular) {
+  var user = currentUser.get();
+  if (user) {
+    Restangular.setDefaultHeaders({'access-token': user.accessToken});
+  };
+};
+topNewsApp.run(setHeaders);
 var Map = function (Restangular) {
   var Model = function (data) {
     Object.keys(data).foeEach(function (key) {
@@ -146,8 +158,29 @@ var Map = function (Restangular) {
 
   Model.prototype = {};
 
+  Model.create = function (params) {
+    return Restangular
+      .all('users')
+      .all('maps')
+      .post(params)
+      .then(function (data) {
+        return data;
+      });
+  };
+
+  Model.update = function (id, params) {
+    return Restangular
+      .all('users')
+      .one('maps', id)
+      .put(params)
+      .then(function (data) {
+        return data;
+      });
+  };
+
   Model.index = function () {
     return Restangular
+      .all('users')
       .all('maps')
       .getList()
       .then(function (data) {
@@ -157,6 +190,7 @@ var Map = function (Restangular) {
 
   Model.show = function (id) {
     return Restangular
+      .all('users')
       .one('maps', id)
       .get()
       .then(function (data) {
@@ -180,10 +214,8 @@ var User = function (Restangular, currentUser) {
       .post(params)
       .then(function (data) {
         var response = data.plain();
-        if (response.user) {
-          currentUser.set(response.user);
-        }
-        return response.user;
+        currentUser.set(response);  
+        return response;
       });
   };
 
@@ -194,10 +226,8 @@ var User = function (Restangular, currentUser) {
       .post(params)
       .then(function (data) {
         var response = data.plain();
-        if (response.user) {
-          currentUser.set(response.user);
-        }
-        return response.user;
+        currentUser.set(response);  
+        return response;
       });
   };
 
@@ -229,7 +259,7 @@ var User = function (Restangular, currentUser) {
   return (Model);
 };
 topNewsApp.factory('User', User);
-var currentUser = function ($injector, localStorageService, requestedState) {
+var currentUser = function ($injector, localStorageService, requestedState, Restangular) {
   var user = {
     get: function () {
       return localStorageService.get('currentUser');
@@ -237,16 +267,17 @@ var currentUser = function ($injector, localStorageService, requestedState) {
     
     set: function (user) {
       localStorageService.set('currentUser', user);
+      Restangular.setDefaultHeaders({'access-token': user.accessToken});
     },
 
     clear: function () {
       localStorageService.remove('currentUser');
+      Restangular.setDefaultHeaders({'access-token': ''});
     },
 
     checkAccess: function (event, toState, toParams, fromState, fromParams) {
       var $state = $injector.get('$rootScope').$state,
         authorized = !!user.get();
-
       if (toState.authState !== undefined && authorized !== toState.authState) {
         event.preventDefault();
         if (toState.authState) {
@@ -307,11 +338,11 @@ var validation = function ($filter, ngToast) {
 };
 topNewsApp.factory('validation', validation);
 var footer = function () {
-    return {
-        restrict: "E",
-        scope: {},
-        templateUrl: "views/partials/_footer.html"
-    };
+  return {
+    restrict: "E",
+    scope: {},
+    templateUrl: "views/partials/_footer.html"
+  };
 };
 topNewsApp.directive('footer', footer);
 var header = function () {
@@ -326,6 +357,203 @@ var header = function () {
   };
 };
 topNewsApp.directive('header', header);
+var threejsScene = function ($rootScope, $window, THREEService) {
+  return {
+    restrict: 'EA',
+    scope: {
+      width: '=',
+      height: '=',
+      points: '='
+    },
+    link: function(scope, element, attrs) {
+      THREEService.load().then(function (THREE) {
+
+        scope.container = element[0];
+        scope.renderer = THREEService.getRenderer();
+        scope.cameraShift = 0;
+        scope.cameraOffset = 400;
+        scope.rotation = 0;
+        scope.coordinatesFactor = 10;
+        scope.pointRadius = 1;
+        var animation;
+
+        scope.init = function () {
+          scope.renderer.setSize(scope.width, scope.height);
+          scope.container.appendChild(scope.renderer.domElement);
+
+          scope.scene = new THREE.Scene();
+
+          scope.addCamera({x: scope.cameraOffset, y: scope.cameraOffset, z: scope.cameraOffset});
+
+          scope.addAxes(300);
+
+          scope.addPlane({x: 0, z: 0, color: 0xf5f5f5});
+
+          scope.drawPoints();
+
+          scope.addLight({x: -400, y: 800, z: -100});
+
+          scope.renderer.setClearColor(0xf9f9f9, 1);
+        };
+
+        scope.addPlane = function (params) {
+          if (!params) {
+            params = {};
+          }
+          var defaultParams = {x: 0, y: 0, z: 0, color: 0xcccccc, width: 500, height: 500};
+          angular.extend(defaultParams, params);
+
+          var planeGeometry = new THREE.PlaneBufferGeometry(defaultParams.height, defaultParams.width),
+            planeMaterial = new THREE.MeshLambertMaterial({
+              color: defaultParams.color
+            }),
+            plane = new THREE.Mesh(planeGeometry, planeMaterial);
+
+          plane.rotation.x = -0.5 * Math.PI;
+          plane.position.x = defaultParams.x;
+          plane.position.y = defaultParams.y;
+          plane.position.z = defaultParams.z;
+
+          scope.scene.add(plane);
+        };
+
+        scope.addSphere = function (params) {
+          if (!params) {
+            params = {};
+          }
+          var defaultParams = {x: 0, y: 0, color: 0xff0000, radius: 10};
+          angular.extend(defaultParams, params);
+
+          var sphereGeometry = new THREE.SphereGeometry(defaultParams.radius, 20, 20),
+            sphereMaterial = new THREE.MeshLambertMaterial({
+              color: defaultParams.color
+            }),
+            sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+          if (defaultParams.name) {
+            sphere.name = defaultParams.name;
+          }
+          sphere.position.x = defaultParams.x;
+          sphere.position.y = defaultParams.y;
+          sphere.position.z = defaultParams.z;
+
+          scope.scene.add(sphere);
+        };
+
+        scope.addCamera = function (params) {
+          if (!params) {
+            params = {};
+          }
+          var defaultParams = {x: 0, y: 0, z: 0, angle: 45, near: 0.1, far: 10000};
+          angular.extend(defaultParams, params);
+
+          scope.camera = new THREE.PerspectiveCamera(
+            defaultParams.angle,
+            scope.width / scope.height,
+            defaultParams.near,
+            defaultParams.far
+          );
+          scope.camera.position.y = 400;
+          //scope.camera.position.set(defaultParams.x, defaultParams.y, defaultParams.z);
+          //scope.camera.lookAt(scope.scene.position);
+          scope.scene.add(scope.camera);
+        };
+
+        scope.addLight = function (params) {
+          if (!params) {
+            params = {};
+          }
+          var defaultParams = {x: 0, y: 0, z: 0, color: 0xffffff};
+          angular.extend(defaultParams, params);
+
+          var light = new THREE.PointLight(defaultParams.color);
+          light.position.set(defaultParams.x, defaultParams.y, defaultParams.z);
+          scope.scene.add(light);
+        };
+
+        scope.addAxes = function (size) {
+          size = size || 20;
+          var axes = new THREE.AxisHelper(size);
+          scope.scene.add(axes);
+        };
+
+        scope.drawPoints = function () {
+          scope.points.forEach(function (point) {
+            var oldSphere = scope.scene.getObjectByName(point.id), color;
+
+            if (point.type === 0) {
+              color = 0xff0000;
+            } else {
+              color = 0x336699;
+            }
+
+            if (oldSphere) {
+              scope.scene.remove(oldSphere);
+            }
+            scope.addSphere({
+              x: point.x * scope.coordinatesFactor,
+              y: scope.pointRadius / 2,
+              z: point.y * scope.coordinatesFactor,
+              radius: scope.pointRadius,
+              color: color,
+              name: point.id});
+          });
+        };
+
+        scope.$watchCollection('points', function () {
+          scope.drawPoints(scope.points);
+        });
+
+        $rootScope.$on('$stateChangeStart', function () {
+          cancelAnimationFrame(animation);
+        });
+
+        angular.element(document).bind('keydown', function (event) {
+          if (event.which === 37) {
+            scope.cameraShift = -1;
+          } else if (event.which === 39) {
+            scope.cameraShift = 1;
+          } else if (event.which === 38) {
+            if (scope.cameraOffset > 100) {
+              scope.cameraOffset -= 10;
+            }
+          } else if (event.which === 40) {
+            scope.cameraOffset += 10;
+          }
+        });
+
+        angular.element(document).bind('keyup', function (event) {
+          if (event.which === 37 || event.which === 39) {
+            scope.cameraShift = 0;
+          }
+          event.preventDefault();
+        });
+
+        scope.animate = function () {
+          animation = requestAnimationFrame(scope.animate);
+          scope.render();
+        };
+
+        scope.render = function () {
+          var radius = Math.sqrt(Math.pow(scope.cameraOffset, 2) * 2);
+          //sphere.rotation.x += 0.006;
+          //sphere.rotation.y += 0.006;
+          scope.rotation += scope.cameraShift * 0.05;
+          scope.camera.position.x = Math.sin(scope.rotation) * radius;
+          scope.camera.position.z = Math.cos(scope.rotation) * radius;
+          scope.camera.position.y = scope.cameraOffset;
+          scope.camera.lookAt(scope.scene.position);
+          scope.renderer.render(scope.scene, scope.camera, null, true); // forceClear == true
+        };
+
+        scope.init();
+        scope.animate();
+
+      });
+    }
+  };
+}
+topNewsApp.directive('threejsScene', threejsScene);
 var UsersCollectionsIndexCtrl = function ($scope, $state, validation, currentUser, User) {
   $scope.user = currentUser.get();
   $scope.collections = [];
@@ -356,17 +584,55 @@ topNewsApp.controller('UsersCollectionsIndexCtrl', UsersCollectionsIndexCtrl);
 var UsersEditCtrl = function ($scope, $state, $stateParams) {
 };
 topNewsApp.controller('UsersEditCtrl', UsersEditCtrl);
-var UsersMapsIndexCtrl = function ($scope, $state, currentUser) {
-  $scope.maps = currentUser.maps;
+var UsersMapsIndexCtrl = function ($scope, $state, currentUser, validation, Map) {
+  $scope.user = currentUser.get();
+  $scope.maps = $scope.user.maps;
+
+  $scope.map = {};
+
+  Map.index().then(function (maps) {
+    $scope.maps = maps;
+  });
+
+  $scope.createMap = function () {
+    Map.create($scope.map).then(function (id) {
+      $state.go('users.maps.show', {
+        id: id
+      });
+    }, function (error) {
+      validation.danger(error.data.error);
+    });
+  };
 };
 topNewsApp.controller('UsersMapsIndexCtrl', UsersMapsIndexCtrl);
-var UsersMapsShowCtrl = function ($scope, $state, $stateParams, Map) {
+var UsersMapsShowCtrl = function ($scope, $sails, $state, $stateParams, currentUser, validation, Map) {
+  $scope.user = currentUser.get();
   $scope.map = {};
+  $scope.points = [];
   $scope.id = $stateParams.id;
+
+  if (!$scope.id) {
+    $state.go('users.maps.index');
+  }
 
   Map.show($scope.id).then(function (map) {
     $scope.map = map;
-  })
+    $scope.points = map.points || [];
+
+    $sails.on('maps/' + $scope.map.id + '/update', function (point) {
+      console.log('received: ', point);
+      $scope.points.push(point);
+    });
+  });
+
+  $scope.stop = function () {
+    Map.update($scope.id, {active: false}).then(function (result) {
+      if (result === 200) {
+        validation.success('Map saved');
+        $scope.map.active = false;
+      }
+    })
+  }
 };
 topNewsApp.controller('UsersMapsShowCtrl', UsersMapsShowCtrl);
 var UsersNewCtrl = function ($scope, $state, validation, User) {
@@ -376,9 +642,7 @@ var UsersNewCtrl = function ($scope, $state, validation, User) {
     User.create($scope.user).then(function (user) {
       if (user) {
         validation.success('Welcome to Map builder app!');
-        $state.go('users.maps.index', {
-          id: user.id
-        });
+        $state.go('users.maps.index');
       }
     }, function (error) {
       console.log(error);
@@ -406,7 +670,7 @@ var UsersSessionsNewCtrl = function ($scope, $state, validation, requestedState,
     User.signIn($scope.user).then(function (user) {
       var toState = requestedState.get() || 'users.maps.index';
       requestedState.clear();
-      $state.go(toState, {id: user.id});
+      $state.go(toState);
       validation.success('You have successfully log in');
     }, function (error) {
       validation.danger(error.data.error);
@@ -417,6 +681,281 @@ topNewsApp.controller('UsersSessionsNewCtrl', UsersSessionsNewCtrl);
 angular.element(document).ready(function() {
     angular.bootstrap(document, ['topNewsApp']);
 });
+/**!
+ * THREEjs Angular module implmenting
+ * THREEjs https://github.com/mrdoob/three.js/
+ * see http://threejs.org by mrdoob
+ * @author  Mike Goodstadt  <mikegoodstadt@gmail.com>
+ * @version 0.1.2
+ */
+(function() {
+  'use strict';
+  angular.module('threejs', []);
+
+  angular
+    .module('threejs')
+    .factory('THREEService', THREEService);
+
+  function THREEService($log, $document, $q, $rootScope) {
+    var deferred = $q.defer();
+
+    // RENDER VARIABLES
+    var renderer;
+      
+    function setRenderer() {
+      if (window.WebGLRenderingContext) {
+        renderer = new THREE.WebGLRenderer({
+          alpha: true,
+          antialias: true
+        });
+      } else {
+        renderer = new THREE.CanvasRenderer({
+          alpha: true
+        });         
+      }
+      renderer.setPixelRatio( window.devicePixelRatio );
+      // var clearColor = "0x000000";
+      //  renderer.setClearColor( clearColor, 0.0 ); // defaults: 0x000000, 0.0
+      // renderer.setSize( 100, 100 );
+      // renderer.autoClear = false; // To allow render overlay on top of sprited sphere
+    }
+
+    function onScriptLoad() {
+      if (!renderer) setRenderer();
+      $log.log("THREE.js loaded OK!");
+      $rootScope.$apply(function() {
+        deferred.resolve(window.THREE);
+      });
+    }
+
+    // Create a script tag with ThreeJS as the source
+    // and call our onScriptLoad callback when it
+    // has been loaded
+    var scriptTag = $document[0].createElement('script');
+    scriptTag.type = 'text/javascript';
+    scriptTag.async = true;
+    var online = true;
+    if (online) {
+      scriptTag.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.min.js';
+    } else {
+      scriptTag.src = 'assets/js/three.min.js';
+    }
+    scriptTag.onreadystatechange = function () {
+      if (this.readyState == 'complete') {
+        onScriptLoad(); 
+      }
+    };
+    scriptTag.onload = onScriptLoad;
+
+    var s = $document[0].getElementsByTagName('body')[0];
+    s.appendChild(scriptTag);
+
+    function resetRenderer() {
+      // Reset when switching between views, routes or states (with ui-router module).
+      // Use of renderer.setSize in a directive resets the viewport to full size.
+      // No view independent reset availible for scissor so can only set ScissorTest to false
+      renderer.enableScissorTest ( false );
+      renderer.setClearColor( 0x000000, 0.0 );
+    }
+
+    return {
+      load: function() {
+        $log.log("THREE.js loading...");
+        return deferred.promise;
+      },
+      getRenderer: function() {
+        resetRenderer();
+        return renderer;
+      }
+    };
+  }
+})();
+/**!
+ * THREEjs Plugins Service for
+ * THREEjs Angular module implmenting
+ * THREEjs https://github.com/mrdoob/three.js/
+ * see http://threejs.org by mrdoob
+ * @author  Mike Goodstadt  <mikegoodstadt@gmail.com>
+ * @version 0.1.2
+ */
+(function() {
+  'use strict';
+  angular
+    .module('threejs')
+    .factory('THREEPlugins', THREEPlugins);
+
+  function THREEPlugins($log, $document, $q, $rootScope) {
+    var plugins = {
+      loaded: []
+    };
+
+    return {
+      load: function(filenames) {
+        var self = this;
+        var pluginsToLoad = []; // push async functions into list for subsequent processing
+        angular.forEach(filenames, function(filename, key) {
+          var newPlugin = true;
+          for (var i = plugins.loaded.length - 1; i >= 0; i--) {
+            if (plugins.loaded[key] == filename) newPlugin = false;
+          }
+          if (newPlugin) {
+            var loadPlugin = self.add(filename);
+            pluginsToLoad.push(loadPlugin);
+          }
+        });
+        return $q.all(pluginsToLoad)
+        .then(function(results) {
+          if (results.length > 0) $log.info("THREE.js plugins loaded: " + results);
+          return window.THREE;
+        });
+      },
+      add: function(filename) {
+        var deferred = $q.defer();
+
+        function onScriptLoad() {
+          $rootScope.$apply(function() {
+            plugins.loaded.push(filename);
+            $log.debug(plugins.loaded);
+            deferred.resolve(filename);
+          });
+        }
+
+        var pluginTag = $document[0].createElement('script');
+          pluginTag.type = 'text/javascript';
+          pluginTag.src = 'assets/js/' + filename + '.js';
+          pluginTag.async = true;
+          pluginTag.onreadystatechange = function () {
+            if (this.readyState == 'complete') {
+              onScriptLoad();
+            }
+          };
+          pluginTag.onload = onScriptLoad;
+
+        var t = $document[0].getElementsByTagName('body')[0];
+          t.appendChild(pluginTag);
+
+        return deferred.promise;
+      },
+      remove: function(filename) {
+        angular.forEach(plugins.loaded, function(plugin, key) {
+          if (plugin == filename) {
+            plugins.loaded[key].pop();
+            // REMOVE DOM ELEMENT?
+            $log.info("THREE.js plugin " + filename + " removed.");
+          }
+        });
+      }
+    };
+  }
+})();
+/**!
+ * THREEjs Textures Service for
+ * THREEjs Angular module implmenting
+ * THREEjs https://github.com/mrdoob/three.js/
+ * see http://threejs.org by mrdoob
+ * @author  Mike Goodstadt  <mikegoodstadt@gmail.com>
+ * @version 0.1.2
+ */
+(function() {
+  'use strict';
+  angular
+    .module('threejs')
+    .factory('THREETextures', THREETextures);
+
+  function THREETextures(THREEService, $log, $document, $q, $rootScope) {
+    // TODO: check if texture already loaded - add and remove from array
+    var textures = {
+      loaded: []
+    };
+
+    return {
+      load: function(filenames) {
+        $log.debug(filenames);
+        
+        var self = this;
+        var imagesToLoad = []; // push async functions into list for subsequent processing
+        angular.forEach(filenames, function(filename, key) {
+          var newImage = true;
+          for (var i = textures.loaded.length - 1; i >= 0; i--) {
+            if (textures.loaded[key] == filename) newImage = false;
+          }
+          if (newImage) {
+            var loadImage = self.add(key, filename);
+            imagesToLoad.push(loadImage);
+          }
+        });
+        return $q.all(imagesToLoad)
+        .then(function(results) {
+          if (results.length > 0) $log.debug("Images loaded: " + results);
+          return window.THREE;
+        });
+      },
+      add: function(textureName, filename) {
+        var deferred = $q.defer();
+
+        // Create Manager
+        var textureManager = new THREE.LoadingManager();
+        textureManager.onProgress = function ( item, loaded, total ) {
+          // this gets called after any item has been loaded
+          $log.debug( item, loaded, total );
+        };
+        textureManager.onLoad = function () {
+          // all textures are loaded
+          $rootScope.$apply(function() {
+            deferred.resolve(filename);
+          });
+        };
+
+        // Create New Texture
+        var newTexture = new THREE.Texture();
+        var onProgress = function ( xhr ) {
+          if ( xhr.lengthComputable ) {
+            var percentComplete = xhr.loaded / xhr.total * 100;
+            $log.debug( Math.round(percentComplete, 2) + '% downloaded' );
+          }
+        };
+        var onError = function ( xhr ) {
+        };
+        var loader = new THREE.TextureLoader( textureManager );
+        loader.load( filename, function ( texture ) {
+          newTexture = texture;
+          newTexture.name = textureName;
+          textures.loaded.push( newTexture );
+        }, onProgress, onError );
+
+        return deferred.promise;
+      },
+      remove: function(filename) {
+        angular.forEach(textures.loaded, function(texture, key) {
+          if (texture == filename) {
+            textures.loaded[key].pop();
+            // REMOVE DOM ELEMENT?
+            $log.info("Removed " + filename + " texture.");
+          }
+        });
+      },
+      get: function(textureName) {
+        var texture, found;
+        if (textureName !== undefined || textureName !== false) {
+          for (var i = textures.loaded.length - 1; i >= 0; i--) {
+            if (textures.loaded[i].name === textureName) {
+              texture = textures.loaded[i];
+              found = true;
+              $log.info("Texture \"" + textureName + "\" found!");
+            }
+          }
+        }
+        if (!found) {
+          texture = textures.loaded[0];
+          $log.warn("Texture \"" + textureName + "\" not found: returning \"" + texture.name + ".\"");
+        }
+        $log.debug(texture);
+        return texture;
+
+      }
+    };
+  }
+})();
 (function() {
     angular.module('validation.rule', ['validation'])
         .config(['$validationProvider',

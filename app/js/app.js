@@ -1,12 +1,13 @@
 angular.module('<%= appName %>', [
-    'ngSanitize',
-    'restangular',
-    'ui.router',
-    'LocalStorageModule',
-    'validation',
-    'validation.rule',
-    'ngToast',
-    'ngAnimate',
-    'pascalprecht.translate',
-    'ad3'
+  'LocalStorageModule',
+  'ngAnimate',
+  'ngSanitize',
+  'ngSails',
+  'ngToast',
+  'pascalprecht.translate',
+  'restangular',
+  'threejs',
+  'ui.router',
+  'validation',
+  'validation.rule'
 ]);

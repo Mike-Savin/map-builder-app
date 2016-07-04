@@ -11,10 +11,8 @@ var User = function (Restangular, currentUser) {
       .post(params)
       .then(function (data) {
         var response = data.plain();
-        if (response.user) {
-          currentUser.set(response.user);
-        }
-        return response.user;
+        currentUser.set(response);  
+        return response;
       });
   };
 
@@ -25,10 +23,8 @@ var User = function (Restangular, currentUser) {
       .post(params)
       .then(function (data) {
         var response = data.plain();
-        if (response.user) {
-          currentUser.set(response.user);
-        }
-        return response.user;
+        currentUser.set(response);  
+        return response;
       });
   };
 

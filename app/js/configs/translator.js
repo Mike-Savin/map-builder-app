@@ -10,7 +10,7 @@ var restangular = function ($translateProvider) {
           'EXISTS': 'Email already exists',
           'INVALID': 'Email is invalid',
           'REQUIRED': 'Email is required',
-          'NOT_FOUND': 'Email not found'
+          'NOT_FOUND': 'Email was not found'
         }
       }
     }

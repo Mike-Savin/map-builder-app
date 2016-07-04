@@ -8,7 +8,7 @@
            ng-model="user.email"
            validator="required"
            valid-method="submit-only"
-           invalid-callback="invalid('Please, enter your email or username')">
+           invalid-callback="invalid('Please enter your email')">
 
     <input type="password"
            name="password"
@@ -17,13 +17,13 @@
            ng-model="user.password"
            validator="required"
            valid-method="submit-only"
-           invalid-callback="invalid('Please, fill in password field')">
+           invalid-callback="invalid('Please fill in password field')">
 
     <button class="btn"
             ng-click="submit()"
             validation-submit="usersSessionsNewForm">Sign in</button>
   </form>
-  <a ui-sref="users.new" class="under-form-link">Become a new user</a>
+  <a ui-sref="users.new" class="under-form-link">Sign up</a>
   <a ui-sref="users.passwords.new" class="under-form-link">Forgot password?</a>
 </section>
 <footer></footer>

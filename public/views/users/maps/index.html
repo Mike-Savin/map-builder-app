@@ -1,8 +1,31 @@
 <section class="maps-index">
+  <h4 class="maps-heading">Robot ID: {{user.robotId}}</h4>
+  <h4 class="maps-heading">Secret access-token: {{user.accessToken}}</h4>
+
+
+
+
+
+
+  <form class="form" novalidate name="newMapForm" id="form">
+    <input type="text"
+           name="name"
+           class="form-control"
+           placeholder="Map name"
+           ng-model="map.name"
+           validator="required"
+           valid-method="submit-only"
+           invalid-callback="invalid('Please enter map name')">
+           
+    <button class="btn"
+            ng-click="createMap()">New map</button>
+  </form>
+
+
   <h4 class="maps-heading">Maps:</h4>
   <ul class="maps-list">
     <li class="map" ng-repeat="map in maps">
-      <a ui-sref="mapsShow({id: map.id})">{{map.name}}</a>
+      <a ui-sref="users.maps.show({id: map.id})">{{map.name}}</a>
     </li>
   </ul>
 </section>
