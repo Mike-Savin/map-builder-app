@@ -1,0 +1,9 @@
+<h1 class="logo">Top news</h1>
+<h2 class="collections-header">Collections:</h2>
+<ul class="collections-list">
+    <li class="collection"
+        ng-repeat="collection in collections"
+        ng-click="select(collection)">{{collection.name}}</li>
+</ul>
+<a ui-sref="usersEdit">Settings</a>
+<a ui-sref="collections" ng-click="signOut()">Sign out</a>

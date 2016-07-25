@@ -1,0 +1,19 @@
+<section class="users-passwords-new">
+  <h1 class="">Please, enter your email</h1>
+  <form class="form" novalidate name="usersPasswordsNewForm" id="form">
+    <input type="text"
+           name="email"
+           class="form-control"
+           placeholder="e.g. mikesavin@outlook.com"
+           ng-model="user.email"
+           validator="email"
+           valid-method="submit-only"
+           invalid-callback="invalid('Please enter valid email')">
+
+    <button class="btn"
+            ng-click="submit()"
+            validation-submit="usersPasswordsNewForm">Send link</button>
+  </form>
+  <a ui-sref="usersSessionsNew" class="under-form-link">Back to sign in</a>
+</section>
+<footer></footer>
