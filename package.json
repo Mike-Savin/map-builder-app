@@ -5,6 +5,7 @@
     "node": ">=0.10.0"
   },
   "dependencies": {
+    "angular-grunt-build": "0.0.3",
     "autoprefixer": "^6.3.6",
     "bower": "^1.4.1",
     "express": "^4.13.0",
@@ -26,7 +27,6 @@
     "grunt-include-source": "^0.5.1",
     "grunt-mkdir": "^0.1.2",
     "grunt-ng-annotate": "^0.10.0",
-    "grunt-oldmen-build": "^0.1.1",
     "grunt-postcss": "^0.8.0",
     "load-grunt-tasks": "^0.4.0",
     "sass": "^0.5.0",

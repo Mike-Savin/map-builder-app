@@ -1,13 +1,13 @@
 module.exports = function (grunt) {
 
-    require('load-grunt-tasks')(grunt);
+    require('load-grunt-tasks')(grunt, {pattern: ['grunt-*', '@*/grunt-*', 'angular-grunt-*']});
     require('time-grunt')(grunt);
 
     var appConfig = {
         src: 'app',
         tmp: 'tmp',
         dist: 'public',
-        name: 'topNews'
+        name: 'mapBuilder'
     };
 
     grunt.initConfig({
@@ -40,7 +40,7 @@ module.exports = function (grunt) {
         watch: {
             js: {
                 files: ['<%= app.src %>/js/**/*.js'],
-                tasks: ['oldmen_build:dist', 'concat:dist', 'copy:js'],
+                tasks: ['angular_build:dist', 'concat:dist', 'copy:js'],
                 options: {
                     livereload: '<%= connect.options.livereload %>'
                 }
@@ -89,10 +89,7 @@ module.exports = function (grunt) {
 
         bower_concat: {
             dist: {
-                dest: '<%= app.tmp %>/js/vendor/bower.js',
-                mainFiles: {
-                    'angular-validation': ['dist/angular-validation.js', 'dist/angular-validation-rule.js']
-                }
+                dest: '<%= app.tmp %>/js/vendor/bower.js'
             }
         },
 
@@ -205,11 +202,14 @@ module.exports = function (grunt) {
                 ]
             },
             dist: {
-                src: '<%= app.src %>/public/styles/app.css'
+                src: '<%= app.dist %>/styles/app.css'
             }
         },
 
         uglify: {
+            // options: {
+            //     mangle: false
+            // },
             vendor: {
                 files: [{
                     expand: true,
@@ -234,7 +234,7 @@ module.exports = function (grunt) {
                     return url.replace('app/', '')
                 }
             },
-            'topNews': {
+            'mapBuilder': {
                 src: '<%= app.src %>/views/**/*.html',
                 dest: '/js/templates.js',
                 options: {
@@ -266,7 +266,7 @@ module.exports = function (grunt) {
             ],
             dist1: [
                 'bower_concat:dist',
-                'oldmen_build:dist'
+                'angular_build:dist'
             ],
             dist2: [
                 'ngAnnotate:dist',
@@ -285,7 +285,7 @@ module.exports = function (grunt) {
             ]
         },
 
-        oldmen_build: {
+        angular_build: {
             dist: {
                 source: '<%= app.src %>',
                 destination: '<%= app.tmp %>',
