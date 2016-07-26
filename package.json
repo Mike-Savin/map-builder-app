@@ -33,6 +33,6 @@
     "time-grunt": "^0.3.1"
   },
   "scripts": {
-    "postinstall": "bower install -F && grunt build"
+    "postinstall": "bundle install && bower install -F && grunt build"
   }
 }
