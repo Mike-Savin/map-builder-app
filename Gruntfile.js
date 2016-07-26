@@ -306,7 +306,7 @@ module.exports = function (grunt) {
         'watch'
     ]);
 
-    grunt.registerTask('heroku', [
+    grunt.registerTask('build', [
         'concurrent:clean',
         'mkdir:dist',
         'concurrent:dist1',
