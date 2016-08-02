@@ -11,8 +11,12 @@ var validation = function ($filter, ngToast) {
         });
       }
 
-      if (typeof messages === 'object' && messages && messages.data && messages.data.error) {
-        return publicMethods.message(type, messages.data.error);
+      if (typeof messages === 'object') {
+        if (messages && messages.data && messages.data.error) {
+          return publicMethods.message(type, messages.data.error);
+        } else {
+          return publicMethods.message(type, 'SERVER.ERROR.UNHANDLED');
+        }
       }
 
       ngToast[type]({

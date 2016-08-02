@@ -12,7 +12,8 @@ var restangular = function ($translateProvider) {
           'REQUIRED': 'Email is required',
           'NOT_FOUND': 'Email was not found'
         },
-        'INTERNAL': 'Internal server error'
+        'INTERNAL': 'Internal server error',
+        'UNHANDLED': 'An error has occured. Please try again your request'
       }
     }
   });
