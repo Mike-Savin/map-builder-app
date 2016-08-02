@@ -14,7 +14,7 @@ var UsersMapsIndexCtrl = function ($scope, $state, currentUser, validation, Map)
         id: id
       });
     }, function (error) {
-      validation.danger(error.data.error);
+      validation.danger(error);
     });
   };
 };

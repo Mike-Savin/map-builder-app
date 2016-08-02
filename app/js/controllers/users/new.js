@@ -9,7 +9,7 @@ var UsersNewCtrl = function ($scope, $state, validation, User) {
       }
     }, function (error) {
       console.log(error);
-      validation.danger(error.data.error);
+      validation.danger(error);
     });
   };
 };

@@ -8,7 +8,7 @@ var UsersSessionsNewCtrl = function ($scope, $state, validation, requestedState,
       $state.go(toState);
       validation.success('You have successfully log in');
     }, function (error) {
-      validation.danger(error.data.error);
+      validation.danger(error);
     });
   };
 };
