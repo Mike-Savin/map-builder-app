@@ -13,7 +13,7 @@ var restangular = function ($translateProvider) {
           'NOT_FOUND': 'Email was not found'
         },
         'INTERNAL': 'Internal server error',
-        'UNHANDLED': 'An error has occured. Please try again your request'
+        'UNHANDLED': 'An error has occured. Please try again to send your request'
       }
     }
   });
